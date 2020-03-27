@@ -1,20 +1,19 @@
 const WebSocketServer = require('websocket').server;
+const http = require('http');
 const express = require('express');
 
-const server = express();
+const app = express();
 
-const port = 3000
-server.get('/', (req, res) => res.send('Hello World!'))
-server.listen(port, () => console.log(`Example app listening on port ${port}!`))
+//initialize a simple http server
+const httpServer = http.createServer(app);
 
-// create the server
-wsServer = new WebSocketServer({
-  httpServer: server
-});
+//initialize the WebSocket server instance
+const wsServer = new WebSocketServer({ httpServer });
 
 // WebSocket server
 wsServer.on('request', function(request) {
   var connection = request.accept(null, request.origin);
+  console.log('New websocket connection')
 
   // This is the most important callback for us, we'll handle
   // all messages from users here.
@@ -27,4 +26,9 @@ wsServer.on('request', function(request) {
   connection.on('close', function(connection) {
     // close user connection
   });
+});
+
+//start our server
+httpServer.listen(process.env.PORT || 1337, () => {
+  console.log(`Server started on port ${httpServer.address().port} :)`);
 });
