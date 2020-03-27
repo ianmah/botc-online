@@ -1,11 +1,11 @@
-var WebSocketServer = require('websocket').server;
-var http = require('http');
+const WebSocketServer = require('websocket').server;
+const express = require('express');
 
-var server = http.createServer(function(request, response) {
-  // process HTTP request. Since we're writing just WebSockets
-  // server we don't have to implement anything.
-});
-server.listen(1337, function() { });
+const server = express();
+
+const port = 3000
+server.get('/', (req, res) => res.send('Hello World!'))
+server.listen(port, () => console.log(`Example app listening on port ${port}!`))
 
 // create the server
 wsServer = new WebSocketServer({
