@@ -33,7 +33,8 @@ wsServer.on('request', function(request) {
       const command = data.command
       switch (command) {
         case 'newUser':
-          newUser(data)
+          newUser(data, connection)
+          break;
         default:
           noCommand(data, connection)
       }
@@ -50,13 +51,15 @@ httpServer.listen(process.env.PORT || 1337, () => {
   console.log(`Server started on port ${httpServer.address().port} :)`);
 });
 
-const newUser = (data) => {
+const newUser = (data, connection) => {
   const user = {
     uuid: data.uuid,
     name: data.name
   }
   
   users.push(user)
+  console.log(users)
+  connection.send(JSON.stringify({command:'joinLobby',users}))
 }
 
 const noCommand = ({command}, connection) => {
