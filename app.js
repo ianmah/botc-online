@@ -14,8 +14,8 @@ const wsServer = new WebSocketServer({ httpServer });
 const users = []
 
 // WebSocket server
-wsServer.on('request', function(request) {
-  var connection = request.accept(null, request.origin);
+wsServer.on('request', request => {
+  const connection = request.accept(null, request.origin);
   const uuid = uuidv4();
   console.log('New websocket connection', uuid)
   connection.send(JSON.stringify({
@@ -25,7 +25,7 @@ wsServer.on('request', function(request) {
 
   // This is the most important callback for us, we'll handle
   // all messages from users here.
-  connection.on('message', function(message) {
+  connection.on('message', message => {
     if (message.utf8Data) {
       const data = JSON.parse(message.utf8Data) // {"name":"Ian","message":"Hi"}
       console.log('New message:', data)
@@ -41,7 +41,7 @@ wsServer.on('request', function(request) {
     }
   });
 
-  connection.on('close', function(connection) {
+  connection.on('close', connection => {
     // close user connection
   });
 });
@@ -56,12 +56,12 @@ const newUser = (data, connection) => {
     uuid: data.uuid,
     name: data.name
   }
-  
+
   users.push(user)
   console.log(users)
-  connection.send(JSON.stringify({command:'joinLobby',users}))
+  connection.send(JSON.stringify({ command: 'joinLobby', users }))
 }
 
-const noCommand = ({command}, connection) => {
+const noCommand = ({ command }, connection) => {
   connection.send(`Command "${command}" not found`)
 }
