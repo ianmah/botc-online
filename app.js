@@ -2,6 +2,7 @@ const WebSocketServer = require('websocket').server;
 const http = require('http');
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
+const { shuffle } = require('./util')
 
 const app = express();
 
@@ -35,6 +36,12 @@ wsServer.on('request', request => {
         case 'newUser':
           newUser(data, connection)
           break;
+        case 'assignStoryteller':
+          assignStoryteller(data)
+          break;
+        case 'assignRoles':
+          assignRoles(data)
+          break;
         default:
           noCommand(data, connection)
       }
@@ -53,13 +60,27 @@ httpServer.listen(process.env.PORT || 1337, () => {
 
 const newUser = (data, connection) => {
   const user = {
-    uuid: data.uuid,
-    name: data.name
+    name: data.name,
+    connection
   }
-
-  users.push(user)
+  users[uuid] = user
   console.log(users)
-  connection.send(JSON.stringify({ command: 'joinLobby', users }))
+  connection.send(JSON.stringify({command:'joinLobby', users}))
+}
+
+const assignStoryteller = (data) => {
+  const user = users[data.uuid]
+  user.storyteller = true
+  console.log(users)
+}
+
+const assignRoles = (data) => {
+  const roles = shuffle(data.roles)
+  users.forEach(user => {
+    user.role = roles.pop()
+    user.connection.send(JSON.stringify({command:'role', role: user.role}))
+  })
+  console.log(users)
 }
 
 const noCommand = ({ command }, connection) => {
