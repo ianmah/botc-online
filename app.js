@@ -14,22 +14,23 @@ const wsServer = new WebSocket.Server({ server });
 
 const users = {}
 const connections = {}
+let storyteller = false
 
 // WebSocket server
 wsServer.on('connection', ws => {
   const uuid = uuidv4();
+  ws.uuid = uuid
   connections[uuid] = ws
   console.log('New websocket connection', uuid)
 
   ws.send(JSON.stringify({
-    command: 'newConnection',
-    uuid
+    command: 'newConnection'
   }))
 
   // This is the most important callback for us, we'll handle
   // all messages from users here.
   ws.on('message', message => {
-    console.log('New message:', message)
+    console.log(`New message from ${ws.uuid}:\n${message}`)
     const data = JSON.parse(message) // {"command":"newUser","something":"Hi"}
 
     const command = data.command
@@ -38,7 +39,7 @@ wsServer.on('connection', ws => {
         newUser(data, ws)
         break;
       case 'assignStoryteller':
-        assignStoryteller(data)
+        assignStoryteller(ws.uuid)
         break;
       case 'assignRoles':
         assignRoles(data)
@@ -59,16 +60,24 @@ server.listen(process.env.PORT || 1337, () => {
 });
 
 const newUser = (data, ws) => {
-  users[data.uuid] = {
-    name: data.name
+  if (connections[ws.uuid]) {
+    users[ws.uuid] = {
+      name: data.name
+    }
+    ws.send(JSON.stringify({command:'joinLobby', users}))
   }
-  ws.send(JSON.stringify({command:'joinLobby', users}))
+  else {
+    console.warn('No connection for that UUID found')
+    ws.send(JSON.stringify({error:'No connection for that UUID found'}))
+  }
 }
 
-const assignStoryteller = (data) => {
-  const user = users[data.uuid]
-  user.storyteller = true
-  console.log(users)
+const assignStoryteller = (uuid) => {
+  if (!storyteller) {
+    const user = users[uuid]
+    user.storyteller = true
+    storyteller = true
+  }
 }
 
 const assignRoles = (data) => {
@@ -78,6 +87,7 @@ const assignRoles = (data) => {
     user.role = roles.pop()
     connections[uuid].send(JSON.stringify({command:'role', role: user.role}))
   })
+  console.log(users)
 }
 
 const noCommand = ({command}, ws) => {
