@@ -10,14 +10,14 @@ const app = express();
 const server = http.createServer(app);
 
 //initialize the WebSocket server instance
-const wsServer = new WebSocket.Server({ server });
+const wss = new WebSocket.Server({ server });
 
 const users = {}
 const connections = {}
 let storyteller = false
 
 // WebSocket server
-wsServer.on('connection', ws => {
+wss.on('connection', ws => {
   const uuid = uuidv4();
   ws.uuid = uuid
   connections[uuid] = ws
@@ -61,10 +61,13 @@ server.listen(process.env.PORT || 1337, () => {
 
 const newUser = (data, ws) => {
   if (connections[ws.uuid]) {
-    users[ws.uuid] = {
+    const user = {
       name: data.name
     }
+    users[ws.uuid] = user
     ws.send(JSON.stringify({command:'joinLobby', users}))
+    broadcast(JSON.stringify({command:'userJoin', user}))
+    broadcast(JSON.stringify({command:'usersUpdate', users}))
   }
   else {
     console.warn('No connection for that UUID found')
@@ -90,6 +93,14 @@ const assignRoles = (data) => {
   console.log(users)
 }
 
-const noCommand = ({command}, ws) => {
-  ws.send(`Command "${command}" not found`)
+const noCommand = (data, ws) => {
+  ws.send(`Command "${data.command}" not found`)
+}
+
+const broadcast = (message) => {
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(message);
+    }
+  });
 }
