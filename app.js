@@ -18,7 +18,9 @@ const connections = {}
 // WebSocket server
 wsServer.on('connection', ws => {
   const uuid = uuidv4();
+  connections[uuid] = ws
   console.log('New websocket connection', uuid)
+
   ws.send(JSON.stringify({
     command: 'newConnection',
     uuid
@@ -26,29 +28,27 @@ wsServer.on('connection', ws => {
 
   // This is the most important callback for us, we'll handle
   // all messages from users here.
-  ws.on('message', function(message) {
-    if (message.utf8Data) {
-      const data = JSON.parse(message.utf8Data) // {"name":"Ian","message":"Hi"}
-      console.log('New message:', data)
+  ws.on('message', message => {
+    console.log('New message:', message)
+    const data = JSON.parse(message) // {"command":"newUser","something":"Hi"}
 
-      const command = data.command
-      switch (command) {
-        case 'newUser':
-          newUser(data, ws)
-          break;
-        case 'assignStoryteller':
-          assignStoryteller(data)
-          break;
-        case 'assignRoles':
-          assignRoles(data)
-          break;
-        default:
-          noCommand(data, ws)
-      }
+    const command = data.command
+    switch (command) {
+      case 'newUser':
+        newUser(data, ws)
+        break;
+      case 'assignStoryteller':
+        assignStoryteller(data)
+        break;
+      case 'assignRoles':
+        assignRoles(data)
+        break;
+      default:
+        noCommand(data, ws)
     }
   });
 
-  ws.on('close', function(connection) {
+  ws.on('close', ws => {
     // close user connection
   });
 });
@@ -58,11 +58,11 @@ server.listen(process.env.PORT || 1337, () => {
   console.log(`Server started on port ${server.address().port} :)`);
 });
 
-const newUser = (data, connection) => {
+const newUser = (data, ws) => {
   users[data.uuid] = {
     name: data.name
   }
-  connection.send(JSON.stringify({command:'joinLobby', users}))
+  ws.send(JSON.stringify({command:'joinLobby', users}))
 }
 
 const assignStoryteller = (data) => {
@@ -78,9 +78,8 @@ const assignRoles = (data) => {
     user.role = roles.pop()
     connections[uuid].send(JSON.stringify({command:'role', role: user.role}))
   })
-  console.log(users)
 }
 
-const noCommand = ({ command }, connection) => {
-  connection.send(`Command "${command}" not found`)
+const noCommand = ({command}, ws) => {
+  ws.send(`Command "${command}" not found`)
 }
