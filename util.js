@@ -6,5 +6,4 @@ const shuffle = (a) => {
     }
     return a;
 }
-
-module.export = { shuffle }
+module.exports = { shuffle }

@@ -12,7 +12,8 @@ const httpServer = http.createServer(app);
 //initialize the WebSocket server instance
 const wsServer = new WebSocketServer({ httpServer });
 
-const users = []
+const users = {}
+const connections = {}
 
 // WebSocket server
 wsServer.on('request', request => {
@@ -59,12 +60,9 @@ httpServer.listen(process.env.PORT || 1337, () => {
 });
 
 const newUser = (data, connection) => {
-  const user = {
-    name: data.name,
-    connection
+  users[data.uuid] = {
+    name: data.name
   }
-  users[uuid] = user
-  console.log(users)
   connection.send(JSON.stringify({command:'joinLobby', users}))
 }
 
@@ -76,9 +74,10 @@ const assignStoryteller = (data) => {
 
 const assignRoles = (data) => {
   const roles = shuffle(data.roles)
-  users.forEach(user => {
+  Object.entries(users).forEach(entry => {
+    const [ uuid, user ]= entry
     user.role = roles.pop()
-    user.connection.send(JSON.stringify({command:'role', role: user.role}))
+    connections[uuid].send(JSON.stringify({command:'role', role: user.role}))
   })
   console.log(users)
 }
