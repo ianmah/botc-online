@@ -1,4 +1,4 @@
-const WebSocketServer = require('websocket').server;
+const WebSocket = require('ws');
 const http = require('http');
 const express = require('express');
 const { v4: uuidv4 } = require('uuid');
@@ -7,27 +7,26 @@ const { shuffle } = require('./util')
 const app = express();
 
 //initialize a simple http server
-const httpServer = http.createServer(app);
+const server = http.createServer(app);
 
 //initialize the WebSocket server instance
-const wsServer = new WebSocketServer({ httpServer });
+const wsServer = new WebSocket.Server({ server });
 
 const users = {}
 const connections = {}
 
 // WebSocket server
-wsServer.on('request', request => {
-  const connection = request.accept(null, request.origin);
+wsServer.on('connection', ws => {
   const uuid = uuidv4();
   console.log('New websocket connection', uuid)
-  connection.send(JSON.stringify({
+  ws.send(JSON.stringify({
     command: 'newConnection',
     uuid
   }))
 
   // This is the most important callback for us, we'll handle
   // all messages from users here.
-  connection.on('message', message => {
+  ws.on('message', function(message) {
     if (message.utf8Data) {
       const data = JSON.parse(message.utf8Data) // {"name":"Ian","message":"Hi"}
       console.log('New message:', data)
@@ -35,7 +34,7 @@ wsServer.on('request', request => {
       const command = data.command
       switch (command) {
         case 'newUser':
-          newUser(data, connection)
+          newUser(data, ws)
           break;
         case 'assignStoryteller':
           assignStoryteller(data)
@@ -44,19 +43,19 @@ wsServer.on('request', request => {
           assignRoles(data)
           break;
         default:
-          noCommand(data, connection)
+          noCommand(data, ws)
       }
     }
   });
 
-  connection.on('close', connection => {
+  ws.on('close', function(connection) {
     // close user connection
   });
 });
 
 //start our server
-httpServer.listen(process.env.PORT || 1337, () => {
-  console.log(`Server started on port ${httpServer.address().port} :)`);
+server.listen(process.env.PORT || 1337, () => {
+  console.log(`Server started on port ${server.address().port} :)`);
 });
 
 const newUser = (data, connection) => {
