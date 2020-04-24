@@ -1,8 +1,8 @@
-const WebSocket = require('ws');
-const http = require('http');
-const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const { shuffle } = require('./util');
+import WebSocket from 'ws';
+import http from 'http';
+import express from 'express';
+import { v4 as uuidv4 } from 'uuid';
+import shuffle from './util';
 import * as commands from './constants';
 
 const app = express();
@@ -21,7 +21,7 @@ let storyteller = false
 wss.on('connection', ws => {
   console.log('New Connection opened')
   ws.send(JSON.stringify({
-    command: 'newConnection'
+    command: commands.NEW_CONNECTION
   }))
 
   // This is the most important callback for us, we'll handle
@@ -32,10 +32,10 @@ wss.on('connection', ws => {
 
     const command = data.command
     switch (command) {
-      case 'newUser':
+      case commands.NEW_USER:
         newUser(data, ws)
         break;
-      case 'rejoinLobby':
+      case commands.REJOIN_LOBBY:
         rejoinLobby(data, ws)
         break;
       case 'assignStoryteller':
@@ -73,11 +73,11 @@ const newUser = (data, ws) => {
   console.log('New user UUID:', uuid)
 
   // Respond to client
-  ws.send(JSON.stringify({command:'joinLobby', uuid}))
+  ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
   // Broadcast to all clients new user has joined
-  broadcast(JSON.stringify({command:'userJoin', user}))
+  broadcast(JSON.stringify({command: commands.USER_JOIN, user}))
   // update all clients' gamestate
-  broadcast(JSON.stringify({command:'usersUpdate', users}))
+  broadcast(JSON.stringify({command: commands.USERS_UPDATE, users}))
 }
 
 const rejoinLobby = (data, ws) => {
@@ -86,12 +86,12 @@ const rejoinLobby = (data, ws) => {
     connections[uuid] = ws
     console.log('Reconnected:', users[uuid].name)
     // Respond to client
-    ws.send(JSON.stringify({command:'joinLobby', uuid}))
+    ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
     // Broadcast to all clients user has rejoined
     // broadcast(JSON.stringify({command:'userJoin', user}))
   } else {
     console.log('Attempt to join null game:', uuid)
-    ws.send(JSON.stringify({command:'failed'}))
+    ws.send(JSON.stringify({command: 'failed'}))
   }
 }
 
@@ -108,12 +108,13 @@ const assignRoles = (data) => {
   Object.entries(users).forEach(entry => {
     const [ uuid, user ]= entry
     user.role = roles.pop()
-    connections[uuid].send(JSON.stringify({command:'role', role: user.role}))
+    connections[uuid].send(JSON.stringify({command: 'role', role: user.role}))
   })
   console.log(users)
 }
 
 const noCommand = (data, ws) => {
+  console.log(`Command "${data.command}" not found`)
   ws.send(`Command "${data.command}" not found`)
 }
 
