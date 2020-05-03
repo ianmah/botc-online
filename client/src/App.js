@@ -1,11 +1,35 @@
 import React from 'react'
-import logo from './logo.svg'
-import './App.css'
+import styled from 'styled-components'
 
-const REQUEST_CONNECTION = 'requestConnection'
-const NEW_CONNECTION = 'newConnection'
+import logo from './assets/demon-head.png'
+
+import { Gameboard } from './Gameboard'
+import { NameInput } from './NameInput'
+
+//Localstorage Key
+const BOTC_GAME_SESSION = 'BOTC_GAME_SESSION'
+
+//Clients Commands
 const NEW_USER = 'newUser'
+const REJOIN_LOBBY = 'rejoinLobby'
+
+//Server Response Commands
+const NEW_CONNECTION = 'newConnection'
 const JOIN_LOBBY = 'joinLobby'
+const FAILED = 'failed'
+
+const AppContainer = styled.div`
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+`
+
+const Logo = styled.img`
+  height: 200px;
+  width: 200px;
+`
 
 class App extends React.Component {
   constructor(props) {
@@ -13,8 +37,8 @@ class App extends React.Component {
 
     this.websocket = null
     this.state = {
+      openConnection: false,
       uuid: '',
-      join: false,
     }
   }
 
@@ -23,7 +47,7 @@ class App extends React.Component {
   }
 
   initWebSocket = async () => {
-    this.websocket = new WebSocket(`ws://5759ac62.ngrok.io/`)
+    this.websocket = new WebSocket(`ws://localhost:1337`)
     this.websocket.onopen = (evt) => this.onOpen(evt)
     this.websocket.onclose = (evt) => this.onClose(evt)
     this.websocket.onmessage = (evt) => this.onMessage(evt)
@@ -32,7 +56,6 @@ class App extends React.Component {
 
   onOpen = () => {
     console.log('Opening Connection...')
-    this.doSend({ command: REQUEST_CONNECTION })
   }
 
   onClose = () => {
@@ -46,46 +69,53 @@ class App extends React.Component {
   }
 
   onError = (evt) => {
-    this.pushMessages(`Error on: ${evt.data}`)
+    console.log(`Error on: ${evt.data}`)
   }
 
   onMessage = (event) => {
     const eventObj = JSON.parse(event.data)
     switch (eventObj.command) {
       case NEW_CONNECTION:
-        this.setState({ uuid: eventObj.uuid })
+        this.setState({ uuid: eventObj.uuid, openConnection: true })
         break
       case JOIN_LOBBY:
-        this.setState({ isInGame: true })
+        localStorage.setItem(BOTC_GAME_SESSION, JSON.stringify(eventObj))
+        this.setState({ inGame: true })
+        break
+      case FAILED:
+        localStorage.removeItem(BOTC_GAME_SESSION)
+        this.setState({ inGame: false })
         break
       default:
-        console.log('unknown command')
+
     }
   }
 
   render() {
-    const { uuid, isInGame } = this.state
+    const { openConnection, inGame } = this.state
+
+    if (!openConnection) {
+      return <div>Contacting server...</div>
+    }
+
+    const lsGameSession = JSON.parse(localStorage.getItem(BOTC_GAME_SESSION))
+    if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
+      this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
+    }
 
     return (
-      <div className='App'>
-        {isInGame ? (
-          <header>IN BOTC GAME</header>
+      <AppContainer>
+        {inGame ? (
+          <Gameboard />
         ) : (
-          <header className='App-header'>
-            <img src={logo} className='App-logo' alt='logo' />
-            <p>
-              Edit <code>src/App.js</code> and save to reload.
-            </p>
-            <button
-              onClick={() =>
-                this.doSend({ command: NEW_USER, uuid, name: 'Alex' })
-              }
-            >
-              Connect to Game
-            </button>
-          </header>
+          <React.Fragment>
+            <h1>Blood on the Clocktower</h1>
+            <Logo src={logo} alt={''} />
+            <h2>Unofficial App</h2>
+            <NameInput />
+          </React.Fragment>
         )}
-      </div>
+      </AppContainer>
     )
   }
 }
