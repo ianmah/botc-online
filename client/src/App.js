@@ -17,6 +17,8 @@ const REJOIN_LOBBY = 'rejoinLobby'
 const NEW_CONNECTION = 'newConnection'
 const JOIN_LOBBY = 'joinLobby'
 const FAILED = 'failed'
+const USER_JOIN = 'userJoin'
+const USERS_UPDATE = 'usersUpdate'
 
 const AppContainer = styled.div`
   align-items: center;
@@ -86,6 +88,9 @@ class App extends React.Component {
         localStorage.removeItem(BOTC_GAME_SESSION)
         this.setState({ inGame: false })
         break
+      case USERS_UPDATE:
+        this.setState({ users: eventObj.users})
+        break
       default:
 
     }
@@ -101,6 +106,12 @@ class App extends React.Component {
     const lsGameSession = JSON.parse(localStorage.getItem(BOTC_GAME_SESSION))
     if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
       this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
+    }
+
+    const lsGameSession = localStorage.getItem(BOTC_GAME_SESSION)
+    if (lsGameSession && lsGameSession.uuid) {
+      this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.toJSON().uuid })
+      return <div>OH! You're in a game. Please wait....</div>  
     }
 
     return (

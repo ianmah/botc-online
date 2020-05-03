@@ -5,27 +5,20 @@ import { v4 as uuidv4 } from 'uuid';
 import shuffle from './util';
 import * as commands from './constants';
 
-const app = express();
-
-//initialize a simple http server
-const server = http.createServer(app);
-
-//initialize the WebSocket server instance
-const wss = new WebSocket.Server({ server });
-
 const users = {}
 const connections = {}
 let storyteller = false
 
-// WebSocket server
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocket.Server({ server });
+
 wss.on('connection', ws => {
   console.log('New Connection opened')
   ws.send(JSON.stringify({
     command: commands.NEW_CONNECTION
   }))
 
-  // This is the most important callback for us, we'll handle
-  // all messages from users here.
   ws.on('message', message => {
     console.log(`New message from ${ws.uuid}:\n    ${message}`)
     const data = JSON.parse(message) // {"command":"newUser","something":"Hi"}
@@ -76,8 +69,8 @@ const newUser = (data, ws) => {
   ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
   // Broadcast to all clients new user has joined
   broadcast(JSON.stringify({command: commands.USER_JOIN, user}))
-  // update all clients' gamestate
-  broadcast(JSON.stringify({command: commands.USERS_UPDATE, users}))
+  // update all clients' user name list
+  broadcastUsers()
 }
 
 const rejoinLobby = (data, ws) => {
@@ -124,4 +117,9 @@ const broadcast = (message) => {
       client.send(message);
     }
   });
+}
+
+const broadcastUsers = () => {
+  const players = users.values.map(user => ({ name: user.name }))
+  broadcast(JSON.stringify({command: commands.USERS_UPDATE, users: players}))
 }
