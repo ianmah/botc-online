@@ -10,7 +10,6 @@ import { NameInput } from './NameInput'
 const BOTC_GAME_SESSION = 'BOTC_GAME_SESSION'
 
 //Clients Commands
-const NEW_USER = 'newUser'
 const REJOIN_LOBBY = 'rejoinLobby'
 
 //Server Response Commands
@@ -100,7 +99,8 @@ class App extends React.Component {
         this.setState({ users: eventObj.users})
         break
       default:
-
+        console.log(eventObj)
+        break
     }
   }
 
@@ -114,7 +114,7 @@ class App extends React.Component {
     if (inGame) {
       return (
         <AppContainer>
-          <Gameboard users={this.state.users}/>
+          <Gameboard users={this.state.users} websocket={this.websocket}/>
         </AppContainer>
       )
     }
@@ -128,7 +128,7 @@ class App extends React.Component {
     return (
       <AppContainer>
         <h1>Blood on the Clocktower</h1>
-        <Logo src={logo} alt={''} />
+        <Logo src={logo} alt={'big ugly face'} />
         <h2>Unofficial App</h2>
         <NameInput websocket={this.websocket} />
       </AppContainer>

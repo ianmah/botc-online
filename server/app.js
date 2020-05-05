@@ -75,7 +75,7 @@ const newUser = (data, ws) => {
   // update all clients' user name list
   broadcastUsers()
 
-  console.log(users)
+  console.log('users:', users)
 }
 
 const rejoinLobby = (data, ws) => {
@@ -107,12 +107,12 @@ const assignRoles = (data) => {
     user.role = roles.pop()
     connections[uuid].send(JSON.stringify({command: 'role', role: user.role}))
   })
-  console.log(users)
+  console.log('users:', users)
 }
 
 const noCommand = (data, ws) => {
   console.log(`Command "${data.command}" not found`)
-  ws.send(`Command "${data.command}" not found`)
+  ws.send(JSON.stringify(`Command "${data.command}" not found`))
 }
 
 const broadcast = (message) => {
