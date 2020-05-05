@@ -108,22 +108,22 @@ class App extends React.Component {
       this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
     }
 
-    const lsGameSession = localStorage.getItem(BOTC_GAME_SESSION)
-    if (lsGameSession && lsGameSession.uuid) {
-      this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.toJSON().uuid })
-      return <div>OH! You're in a game. Please wait....</div>  
-    }
+    // const lsGameSession = localStorage.getItem(BOTC_GAME_SESSION)
+    // if (lsGameSession && lsGameSession.uuid) {
+    //   this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.toJSON().uuid })
+    //   return <div>OH! You're in a game. Please wait....</div>  
+    // }
 
     return (
       <AppContainer>
         {inGame ? (
-          <Gameboard />
+          <Gameboard users={this.state.users}/>
         ) : (
           <React.Fragment>
             <h1>Blood on the Clocktower</h1>
             <Logo src={logo} alt={''} />
             <h2>Unofficial App</h2>
-            <NameInput />
+            <NameInput websocket={this.websocket} />
           </React.Fragment>
         )}
       </AppContainer>

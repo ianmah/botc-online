@@ -78,10 +78,15 @@ const rejoinLobby = (data, ws) => {
   if (connections[uuid]) {
     connections[uuid] = ws
     console.log('Reconnected:', users[uuid].name)
+    
     // Respond to client
     ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
+
     // Broadcast to all clients user has rejoined
     // broadcast(JSON.stringify({command:'userJoin', user}))
+
+    // update all clients' user name list
+    broadcastUsers()
   } else {
     console.log('Attempt to join null game:', uuid)
     ws.send(JSON.stringify({command: 'failed'}))
@@ -120,6 +125,6 @@ const broadcast = (message) => {
 }
 
 const broadcastUsers = () => {
-  const players = users.values.map(user => ({ name: user.name }))
+  const players = Object.values(users).map(user => ({ name: user.name }))
   broadcast(JSON.stringify({command: commands.USERS_UPDATE, users: players}))
 }

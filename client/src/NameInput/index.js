@@ -8,13 +8,20 @@ export class NameInput extends React.Component {
     this.inputRef = React.createRef()
   }
 
+  doSend = (data) => {
+    if (this.props.websocket) {
+      this.props.websocket.send(JSON.stringify(data))
+    }
+  }
+
   handleInputChange(evt) {
     //Do input validation/error handling
   }
 
   onSubmit() {
-    console.log(this.inputRef.current.value)
-    // this.doSend({ command: NEW_USER, name: 'Ian' })
+    // console.log(this.inputRef.current.value)
+    const name = this.inputRef.current.value
+    this.doSend({ command: NEW_USER, name })
   }
 
   render() {
