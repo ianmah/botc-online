@@ -1,12 +1,13 @@
 import React from 'react'
 
-const DISCONNECT = 'DISCONNECT'
+const DISCONNECT = 'disconnect'
 
 export const Gameboard = (props) => {
     const onDisconnect = () => {
         doSend({
             command: DISCONNECT
         })
+        props.websocket.close();
     }
     
     const doSend = (data) => {

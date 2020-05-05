@@ -31,6 +31,9 @@ wss.on('connection', ws => {
       case commands.REJOIN_LOBBY:
         rejoinLobby(data, ws)
         break;
+      case commands.DISCONNECT:
+        disonnect(ws)
+        break;
       case 'assignRoles':
         assignRoles(data)
         break;
@@ -96,6 +99,26 @@ const rejoinLobby = (data, ws) => {
     console.log(users)
   } else {
     console.log('Attempt to join null game:', uuid)
+    ws.send(JSON.stringify({command: 'failed'}))
+  }
+}
+
+const disonnect = (ws) => {
+  const uuid = ws.uuid
+  if (connections[uuid]) {
+    console.log('Disonnect:', users[uuid].name)
+    delete connections[uuid]
+    delete users[uuid]
+
+    // Respond to client
+    // ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
+
+    // update all clients' user name list
+    broadcastUsers()
+
+    console.log(users)
+  } else {
+    console.log('Attempt to disconnect null user:', uuid)
     ws.send(JSON.stringify({command: 'failed'}))
   }
 }

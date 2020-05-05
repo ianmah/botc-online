@@ -43,19 +43,22 @@ class App extends React.Component {
     }
   }
 
-  async componentDidMount() {
-    await this.initWebSocket()
+  componentDidMount() {
+    this.initWebSocket()
   }
 
   componentDidUpdate() {
     const { openConnection, inGame } = this.state
+    if (!openConnection) {
+      this.initWebSocket()
+    }
     const lsGameSession = JSON.parse(localStorage.getItem(BOTC_GAME_SESSION))
     if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
       this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
     }
   }
 
-  initWebSocket = async () => {
+  initWebSocket = () => {
     this.websocket = new WebSocket(`ws://localhost:1337`)
     this.websocket.onopen = (evt) => this.onOpen(evt)
     this.websocket.onclose = (evt) => this.onClose(evt)
@@ -69,6 +72,7 @@ class App extends React.Component {
 
   onClose = () => {
     console.log('Closing Connection...')
+    this.setState({ openConnection: false, inGame: false })
   }
 
   onError = (evt) => {
