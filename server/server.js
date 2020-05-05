@@ -52,15 +52,17 @@ server.listen(process.env.PORT || 1337, () => {
 const newUser = (data, ws) => {
   let uuid
 
-  if (data.uuid) {
-    // Reconnect attempt
+  if (data.uuid) { // Reconnect attempt
     if (connections[data.uuid]) {
+      console.log('Successful reconnect:', data.uuid)
       uuid = data.uuid
     } else {
-      console.log('Attempt to join null game:', uuid)
+      console.log('Attempt to join null game:', data.uuid)
       ws.send(JSON.stringify({command: 'failed'}))
+      return
     }
   }
+
   if (!uuid) {
     uuid = uuidv4();
     const user = {

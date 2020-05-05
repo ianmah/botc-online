@@ -8,6 +8,8 @@ import { NameInput } from './NameInput'
 import { Storyteller } from './Storyteller'
 import * as constants from './constants'
 
+import websocket from './Websocket'
+
 //Server Response Commands
 const NEW_CONNECTION = 'newConnection'
 const JOIN_LOBBY = 'joinLobby'
@@ -40,7 +42,8 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    this.initWebSocket()
+    websocket.onclose = this.onClose
+    websocket.onmessage = this.onMessage
   }
 
   componentDidUpdate() {
@@ -48,41 +51,19 @@ class App extends React.Component {
 
     // Open new connection check
     if (!openConnection) {
-      this.initWebSocket()
+      this.componentDidMount()
     }
 
     // Rejoin game check
     const lsGameSession = JSON.parse(localStorage.getItem(constants.BOTC_GAME_SESSION))
     if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
-      this.doSend({ command: constants.NEW_USER, uuid: lsGameSession.uuid })
+      websocket.doSend({ command: constants.NEW_USER, uuid: lsGameSession.uuid })
     }
-  }
-
-  initWebSocket = () => {
-    this.websocket = new WebSocket(`ws://localhost:1337`)
-    this.websocket.onopen = (evt) => this.onOpen(evt)
-    this.websocket.onclose = (evt) => this.onClose(evt)
-    this.websocket.onmessage = (evt) => this.onMessage(evt)
-    this.websocket.onerror = (evt) => this.onError(evt)
-  }
-
-  onOpen = () => {
-    console.log('Opening Connection...')
   }
 
   onClose = () => {
     console.log('Closing Connection...')
     this.setState({ openConnection: false, inGame: false })
-  }
-
-  onError = (evt) => {
-    console.log(`Error on: ${evt.data}`)
-  }
-
-  doSend = (data) => {
-    if (this.websocket) {
-      this.websocket.send(JSON.stringify(data))
-    }
   }
 
   onMessage = (event) => {
@@ -137,7 +118,7 @@ class App extends React.Component {
         <h1>Blood on the Clocktower</h1>
         <Logo src={logo} alt={'big ugly face'} />
         <h2>Unofficial App</h2>
-        <NameInput websocket={this.websocket} />
+        <NameInput />
       </AppContainer>
     )
   }

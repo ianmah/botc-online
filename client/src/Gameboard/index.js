@@ -1,16 +1,15 @@
 import React from 'react'
 
 import * as constants from '../constants'
+import websocket from '../Websocket'
 
 const DISCONNECT = 'disconnect'
 
 export const Gameboard = (props) => {
     const onDisconnect = () => {
-        if (props.websocket) {
-            props.websocket.send(JSON.stringify({ command: DISCONNECT }))
-            localStorage.removeItem(constants.BOTC_GAME_SESSION)
-            props.websocket.close();
-        }
+        websocket.send(JSON.stringify({ command: DISCONNECT }))
+        localStorage.removeItem(constants.BOTC_GAME_SESSION)
+        websocket.close();
     }
 
     return (

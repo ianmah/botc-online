@@ -1,6 +1,7 @@
 import React from 'react'
 
 import * as constants from '../constants'
+import websocket from '../Websocket'
 
 export class NameInput extends React.Component {
   constructor(props) {
@@ -10,9 +11,7 @@ export class NameInput extends React.Component {
   }
 
   doSend = (data) => {
-    if (this.props.websocket) {
-      this.props.websocket.send(JSON.stringify(data))
-    }
+    websocket.send(JSON.stringify(data))
   }
 
   handleInputChange(evt) {
