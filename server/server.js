@@ -28,9 +28,6 @@ wss.on('connection', ws => {
       case commands.NEW_USER:
         newUser(data, ws)
         break;
-      case commands.REJOIN_LOBBY:
-        rejoinLobby(data, ws)
-        break;
       case commands.DISCONNECT:
         disonnect(ws)
         break;
@@ -53,19 +50,30 @@ server.listen(process.env.PORT || 1337, () => {
 });
 
 const newUser = (data, ws) => {
-  const uuid = uuidv4();
+  let uuid
+
+  if (data.uuid) {
+    // Reconnect attempt
+    if (connections[data.uuid]) {
+      uuid = data.uuid
+    } else {
+      console.log('Attempt to join null game:', uuid)
+      ws.send(JSON.stringify({command: 'failed'}))
+    }
+  }
+  if (!uuid) {
+    uuid = uuidv4();
+    const user = {
+      name: data.name
+    }
+    users[uuid] = user
+  }
 
   ws.uuid = uuid
   connections[uuid] = ws
 
-  const user = {
-    name: data.name
-  }
-  users[uuid] = user
-
   if (data.storyteller && !storyteller) {
-    const user = users[uuid]
-    user.storyteller = true
+    users[uuid].storyteller = true
     storyteller = true
   }
 
@@ -75,7 +83,8 @@ const newUser = (data, ws) => {
   ws.send(JSON.stringify({
     command: commands.JOIN_LOBBY,
     uuid,
-    storyteller: user.storyteller
+    storyteller: users[uuid].storyteller,
+    user: users[uuid]
   }))
 
   // Broadcast to all clients new user has joined
@@ -87,42 +96,17 @@ const newUser = (data, ws) => {
   console.log('users:', users)
 }
 
-const rejoinLobby = (data, ws) => {
-  const uuid = data.uuid
-  if (connections[uuid]) {
-    ws.uuid = uuid
-    connections[uuid] = ws
-    console.log('Reconnected:', users[uuid].name)
-
-    // Respond to client
-    ws.send(JSON.stringify({
-      command: commands.JOIN_LOBBY,
-      uuid,
-      storyteller: user[uuid].storyteller
-    }))
-
-    // Broadcast to all clients user has rejoined
-    // broadcast(JSON.stringify({command:'userJoin', user}))
-
-    // update all clients' user name list
-    broadcastUsers()
-
-    console.log(users)
-  } else {
-    console.log('Attempt to join null game:', uuid)
-    ws.send(JSON.stringify({command: 'failed'}))
-  }
-}
-
 const disonnect = (ws) => {
   const uuid = ws.uuid
   if (connections[uuid]) {
     console.log('Disonnect:', users[uuid].name)
+
+    if (users[uuid].storyteller) {
+      storyteller = false
+    }
+
     delete connections[uuid]
     delete users[uuid]
-
-    // Respond to client
-    // ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
 
     // update all clients' user name list
     broadcastUsers()

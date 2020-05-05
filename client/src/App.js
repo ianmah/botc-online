@@ -8,9 +8,6 @@ import { NameInput } from './NameInput'
 import { Storyteller } from './Storyteller'
 import * as constants from './constants'
 
-//Clients Commands
-const REJOIN_LOBBY = 'rejoinLobby'
-
 //Server Response Commands
 const NEW_CONNECTION = 'newConnection'
 const JOIN_LOBBY = 'joinLobby'
@@ -57,7 +54,7 @@ class App extends React.Component {
     // Rejoin game check
     const lsGameSession = JSON.parse(localStorage.getItem(constants.BOTC_GAME_SESSION))
     if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
-      this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
+      this.doSend({ command: constants.NEW_USER, uuid: lsGameSession.uuid })
     }
   }
 

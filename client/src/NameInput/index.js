@@ -1,6 +1,6 @@
 import React from 'react'
 
-const NEW_USER = 'newUser'
+import * as constants from '../constants'
 
 export class NameInput extends React.Component {
   constructor(props) {
@@ -24,7 +24,7 @@ export class NameInput extends React.Component {
     const name = this.inputRef.current.value
     const isStoryteller = this.storytellerRef.current.checked
     this.doSend({
-      command: NEW_USER,
+      command: constants.NEW_USER,
       name,
       storyteller: isStoryteller
     })
