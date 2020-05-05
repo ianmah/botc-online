@@ -84,6 +84,7 @@ const newUser = (data, ws) => {
 const rejoinLobby = (data, ws) => {
   const uuid = data.uuid
   if (connections[uuid]) {
+    ws.uuid = uuid
     connections[uuid] = ws
     console.log('Reconnected:', users[uuid].name)
 

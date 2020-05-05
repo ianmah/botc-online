@@ -5,9 +5,7 @@ import logo from './assets/demon-head.png'
 
 import { Gameboard } from './Gameboard'
 import { NameInput } from './NameInput'
-
-//Localstorage Key
-const BOTC_GAME_SESSION = 'BOTC_GAME_SESSION'
+import * as constants from './constants'
 
 //Clients Commands
 const REJOIN_LOBBY = 'rejoinLobby'
@@ -49,10 +47,14 @@ class App extends React.Component {
 
   componentDidUpdate() {
     const { openConnection, inGame } = this.state
+
+    // Open new connection check
     if (!openConnection) {
       this.initWebSocket()
     }
-    const lsGameSession = JSON.parse(localStorage.getItem(BOTC_GAME_SESSION))
+
+    // Rejoin game check
+    const lsGameSession = JSON.parse(localStorage.getItem(constants.BOTC_GAME_SESSION))
     if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
       this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
     }
@@ -92,11 +94,11 @@ class App extends React.Component {
         this.setState({ uuid: eventObj.uuid, openConnection: true })
         break
       case JOIN_LOBBY:
-        localStorage.setItem(BOTC_GAME_SESSION, JSON.stringify(eventObj))
+        localStorage.setItem(constants.BOTC_GAME_SESSION, JSON.stringify(eventObj))
         this.setState({ inGame: true })
         break
       case FAILED:
-        localStorage.removeItem(BOTC_GAME_SESSION)
+        localStorage.removeItem(constants.BOTC_GAME_SESSION)
         this.setState({ inGame: false })
         break
       case USERS_UPDATE:
