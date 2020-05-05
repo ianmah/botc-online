@@ -72,14 +72,14 @@ class App extends React.Component {
     console.log('Closing Connection...')
   }
 
+  onError = (evt) => {
+    console.log(`Error on: ${evt.data}`)
+  }
+
   doSend = (data) => {
     if (this.websocket) {
       this.websocket.send(JSON.stringify(data))
     }
-  }
-
-  onError = (evt) => {
-    console.log(`Error on: ${evt.data}`)
   }
 
   onMessage = (event) => {

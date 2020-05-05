@@ -31,9 +31,6 @@ wss.on('connection', ws => {
       case commands.REJOIN_LOBBY:
         rejoinLobby(data, ws)
         break;
-      case 'assignStoryteller':
-        assignStoryteller(ws.uuid)
-        break;
       case 'assignRoles':
         assignRoles(data)
         break;
@@ -63,6 +60,12 @@ const newUser = (data, ws) => {
   }
   users[uuid] = user
 
+  if (data.storyteller && !storyteller) {
+    const user = users[uuid]
+    user.storyteller = true
+    storyteller = true
+  }
+
   console.log('New user UUID:', uuid)
 
   // Respond to client
@@ -71,6 +74,8 @@ const newUser = (data, ws) => {
   broadcast(JSON.stringify({command: commands.USER_JOIN, user}))
   // update all clients' user name list
   broadcastUsers()
+
+  console.log(users)
 }
 
 const rejoinLobby = (data, ws) => {
@@ -78,7 +83,7 @@ const rejoinLobby = (data, ws) => {
   if (connections[uuid]) {
     connections[uuid] = ws
     console.log('Reconnected:', users[uuid].name)
-    
+
     // Respond to client
     ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
 
@@ -87,17 +92,11 @@ const rejoinLobby = (data, ws) => {
 
     // update all clients' user name list
     broadcastUsers()
+
+    console.log(users)
   } else {
     console.log('Attempt to join null game:', uuid)
     ws.send(JSON.stringify({command: 'failed'}))
-  }
-}
-
-const assignStoryteller = (uuid) => {
-  if (!storyteller) {
-    const user = users[uuid]
-    user.storyteller = true
-    storyteller = true
   }
 }
 
