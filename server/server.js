@@ -72,9 +72,15 @@ const newUser = (data, ws) => {
   console.log('New user UUID:', uuid)
 
   // Respond to client
-  ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
+  ws.send(JSON.stringify({
+    command: commands.JOIN_LOBBY,
+    uuid,
+    storyteller: user.storyteller
+  }))
+
   // Broadcast to all clients new user has joined
-  broadcast(JSON.stringify({command: commands.USER_JOIN, user}))
+  // broadcast(JSON.stringify({command: commands.USER_JOIN, user}))
+  
   // update all clients' user name list
   broadcastUsers()
 
@@ -89,7 +95,11 @@ const rejoinLobby = (data, ws) => {
     console.log('Reconnected:', users[uuid].name)
 
     // Respond to client
-    ws.send(JSON.stringify({command: commands.JOIN_LOBBY, uuid}))
+    ws.send(JSON.stringify({
+      command: commands.JOIN_LOBBY,
+      uuid,
+      storyteller: user[uuid].storyteller
+    }))
 
     // Broadcast to all clients user has rejoined
     // broadcast(JSON.stringify({command:'userJoin', user}))

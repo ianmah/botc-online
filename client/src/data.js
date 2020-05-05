@@ -1,4 +1,4 @@
-const roleDistribution = {
+export const roleDistribution = {
     5:  {townsfolk: 3, outsider: 0, minion: 1},
     6:  {townsfolk: 3, outsider: 1, minion: 1},
     7:  {townsfolk: 5, outsider: 0, minion: 1},
@@ -12,7 +12,7 @@ const roleDistribution = {
     15: {townsfolk: 9, outsider: 2, minion: 3},
 }
 
-const roles = {
+export const roles = {
     chef: 'townsfolk',
     empath: 'townsfolk',
     fortuneTeller: 'townsfolk',

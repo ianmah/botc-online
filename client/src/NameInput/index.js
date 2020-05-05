@@ -25,8 +25,8 @@ export class NameInput extends React.Component {
     const isStoryteller = this.storytellerRef.current.checked
     this.doSend({
       command: NEW_USER,
-      name, storyteller:
-      isStoryteller
+      name,
+      storyteller: isStoryteller
     })
   }
 
@@ -35,8 +35,10 @@ export class NameInput extends React.Component {
       <div>
         <input ref={this.inputRef} onChange={this.handleInputChange} placeholder={'Type name...'} />
         <br/>
-        <input type="checkbox" ref={this.storytellerRef} id="storyteller" />
-        <label htmlFor="storyteller">I am the storyteller</label>
+        <label>
+          <input type='checkbox' ref={this.storytellerRef} id='storyteller' />
+          I am the storyteller
+        </label>
         <br/>
         <button onClick={() => this.onSubmit()}>
           Connect to Game

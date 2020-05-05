@@ -5,6 +5,7 @@ import logo from './assets/demon-head.png'
 
 import { Gameboard } from './Gameboard'
 import { NameInput } from './NameInput'
+import { Storyteller } from './Storyteller'
 import * as constants from './constants'
 
 //Clients Commands
@@ -95,7 +96,7 @@ class App extends React.Component {
         break
       case JOIN_LOBBY:
         localStorage.setItem(constants.BOTC_GAME_SESSION, JSON.stringify(eventObj))
-        this.setState({ inGame: true })
+        this.setState({ inGame: true, storyteller: eventObj.storyteller })
         break
       case FAILED:
         localStorage.removeItem(constants.BOTC_GAME_SESSION)
@@ -121,6 +122,9 @@ class App extends React.Component {
       return (
         <AppContainer>
           <Gameboard users={this.state.users} websocket={this.websocket}/>
+          {
+            this.state.storyteller ? <Storyteller/> : null
+          }
         </AppContainer>
       )
     }
