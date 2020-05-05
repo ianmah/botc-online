@@ -48,6 +48,14 @@ class App extends React.Component {
     await this.initWebSocket()
   }
 
+  componentDidUpdate() {
+    const { openConnection, inGame } = this.state
+    const lsGameSession = JSON.parse(localStorage.getItem(BOTC_GAME_SESSION))
+    if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
+      this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
+    }
+  }
+
   initWebSocket = async () => {
     this.websocket = new WebSocket(`ws://localhost:1337`)
     this.websocket.onopen = (evt) => this.onOpen(evt)
@@ -103,9 +111,12 @@ class App extends React.Component {
       return <div>Contacting server...</div>
     }
 
-    const lsGameSession = JSON.parse(localStorage.getItem(BOTC_GAME_SESSION))
-    if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
-      this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.uuid })
+    if (inGame) {
+      return (
+        <AppContainer>
+          <Gameboard users={this.state.users}/>
+        </AppContainer>
+      )
     }
 
     // const lsGameSession = localStorage.getItem(BOTC_GAME_SESSION)
@@ -116,16 +127,10 @@ class App extends React.Component {
 
     return (
       <AppContainer>
-        {inGame ? (
-          <Gameboard users={this.state.users}/>
-        ) : (
-          <React.Fragment>
-            <h1>Blood on the Clocktower</h1>
-            <Logo src={logo} alt={''} />
-            <h2>Unofficial App</h2>
-            <NameInput websocket={this.websocket} />
-          </React.Fragment>
-        )}
+        <h1>Blood on the Clocktower</h1>
+        <Logo src={logo} alt={''} />
+        <h2>Unofficial App</h2>
+        <NameInput websocket={this.websocket} />
       </AppContainer>
     )
   }
