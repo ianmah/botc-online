@@ -84,7 +84,11 @@ class App extends React.Component {
   }
 
   render() {
-    const { inGame } = this.state
+    const { openConnection, inGame } = this.state
+
+    if (!openConnection){
+      return <header>Connecting to server...</header>
+    }
 
     if (inGame) {
       return (

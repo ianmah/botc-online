@@ -54,21 +54,18 @@ const newUser = (data, ws) => {
 
   if (data.uuid) { // Reconnect attempt
     if (connections[data.uuid]) {
-      console.log('Successful reconnect:', data.uuid)
+      console.log('Reconnect:', data.uuid)
       uuid = data.uuid
     } else {
       console.log('Attempt to join null game:', data.uuid)
       ws.send(JSON.stringify({command: 'failed'}))
       return
     }
-  }
-
-  if (!uuid) {
+  } else {
     uuid = uuidv4();
-    const user = {
-      name: data.name
-    }
+    const user = { name: data.name }
     users[uuid] = user
+    console.log('New user UUID:', uuid)
   }
 
   ws.uuid = uuid
@@ -78,8 +75,6 @@ const newUser = (data, ws) => {
     users[uuid].storyteller = true
     storyteller = true
   }
-
-  console.log('New user UUID:', uuid)
 
   // Respond to client
   ws.send(JSON.stringify({
@@ -95,7 +90,7 @@ const newUser = (data, ws) => {
   // update all clients' user name list
   broadcastUsers()
 
-  console.log('users:', users)
+  console.log('    users:', users)
 }
 
 const disonnect = (ws) => {
