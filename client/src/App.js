@@ -7,7 +7,6 @@ import { Gameboard } from './Gameboard'
 import { NameInput } from './NameInput'
 import { Storyteller } from './Storyteller'
 import * as constants from './constants'
-
 import websocket from './Websocket'
 
 //Server Response Commands
@@ -49,11 +48,6 @@ class App extends React.Component {
   componentDidUpdate() {
     const { openConnection, inGame } = this.state
 
-    // Open new connection check
-    if (!openConnection) {
-      this.componentDidMount()
-    }
-
     // Rejoin game check
     const lsGameSession = JSON.parse(localStorage.getItem(constants.BOTC_GAME_SESSION))
     if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
@@ -90,11 +84,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { openConnection, inGame } = this.state
-
-    if (!openConnection) {
-      return <div>Contacting server...</div>
-    }
+    const { inGame } = this.state
 
     if (inGame) {
       return (

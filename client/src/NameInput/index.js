@@ -10,10 +10,6 @@ export class NameInput extends React.Component {
     this.storytellerRef = React.createRef()
   }
 
-  doSend = (data) => {
-    websocket.send(JSON.stringify(data))
-  }
-
   handleInputChange(evt) {
     //Do input validation/error handling
   }
@@ -22,7 +18,7 @@ export class NameInput extends React.Component {
     // console.log(this.inputRef.current.value)
     const name = this.inputRef.current.value
     const isStoryteller = this.storytellerRef.current.checked
-    this.doSend({
+    websocket.doSend({
       command: constants.NEW_USER,
       name,
       storyteller: isStoryteller
