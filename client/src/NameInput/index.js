@@ -18,11 +18,11 @@ export class NameInput extends React.Component {
     // console.log(this.inputRef.current.value)
     const name = this.inputRef.current.value
     const isStoryteller = this.storytellerRef.current.checked
-    websocket.doSend({
+    websocket.initialize(() => websocket.doSend({
       command: constants.NEW_USER,
       name,
       storyteller: isStoryteller
-    })
+    }))
   }
 
   render() {

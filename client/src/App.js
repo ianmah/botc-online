@@ -40,10 +40,10 @@ class App extends React.Component {
     }
   }
 
-  componentDidMount() {
-    websocket.onclose = this.onClose
-    websocket.onmessage = this.onMessage
-  }
+  // componentDidMount() {
+  //   websocket.onclose = this.onClose
+  //   websocket.onmessage = this.onMessage
+  // }
 
   componentDidUpdate() {
     const { openConnection, inGame } = this.state
@@ -86,9 +86,9 @@ class App extends React.Component {
   render() {
     const { openConnection, inGame } = this.state
 
-    if (!openConnection){
-      return <header>Connecting to server...</header>
-    }
+    // if (!openConnection){
+    //   return <header>Connecting to server...</header>
+    // }
 
     if (inGame) {
       return (
