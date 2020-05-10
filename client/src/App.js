@@ -1,20 +1,13 @@
 import React from 'react'
 import styled from 'styled-components'
+import wsClient from './__lib__/wsClient'
+import * as constants from './constants'
 
 import logo from './assets/demon-head.png'
 
 import { Gameboard } from './Gameboard'
 import { NameInput } from './NameInput'
 import { Storyteller } from './Storyteller'
-import * as constants from './constants'
-import websocket from './Websocket'
-
-//Server Response Commands
-const NEW_CONNECTION = 'newConnection'
-const JOIN_LOBBY = 'joinLobby'
-const FAILED = 'failed'
-const USER_JOIN = 'userJoin'
-const USERS_UPDATE = 'usersUpdate'
 
 const AppContainer = styled.div`
   align-items: center;
@@ -33,7 +26,6 @@ class App extends React.Component {
   constructor(props) {
     super(props)
 
-    this.websocket = null
     this.state = {
       openConnection: false,
       uuid: '',
@@ -41,17 +33,23 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    websocket.onclose = this.onClose
-    websocket.onmessage = this.onMessage
+    wsClient.initialize()
+    this.unsubscribe = wsClient.subscribe(this.onMessage)
+  }
+
+  componentWillUnmount() {
+    this.unsubscribe()
   }
 
   componentDidUpdate() {
     const { openConnection, inGame } = this.state
 
     // Rejoin game check
-    const lsGameSession = JSON.parse(localStorage.getItem(constants.BOTC_GAME_SESSION))
+    const lsGameSession = JSON.parse(
+      localStorage.getItem(constants.BOTC_GAME_SESSION),
+    )
     if (openConnection && !inGame && lsGameSession && lsGameSession.uuid) {
-      websocket.doSend({ command: constants.NEW_USER, uuid: lsGameSession.uuid })
+      wsClient.sendMessage(constants.NEW_USER, { uuid: lsGameSession.uuid })
     }
   }
 
@@ -60,25 +58,25 @@ class App extends React.Component {
     this.setState({ openConnection: false, inGame: false })
   }
 
-  onMessage = (event) => {
-    const eventObj = JSON.parse(event.data)
-    switch (eventObj.command) {
-      case NEW_CONNECTION:
-        this.setState({ uuid: eventObj.uuid, openConnection: true })
+  onMessage = (data) => {
+    const { command } = data
+    switch (command) {
+      case constants.NEW_CONNECTION:
+        this.setState({ uuid: data.uuid, openConnection: true })
         break
-      case JOIN_LOBBY:
-        localStorage.setItem(constants.BOTC_GAME_SESSION, JSON.stringify(eventObj))
-        this.setState({ inGame: true, storyteller: eventObj.storyteller })
+      case constants.JOIN_LOBBY:
+        localStorage.setItem(constants.BOTC_GAME_SESSION, JSON.stringify(data))
+        this.setState({ inGame: true, storyteller: data.storyteller })
         break
-      case FAILED:
+      case constants.FAILED:
         localStorage.removeItem(constants.BOTC_GAME_SESSION)
         this.setState({ inGame: false })
         break
-      case USERS_UPDATE:
-        this.setState({ users: eventObj.users})
+      case constants.USERS_UPDATE:
+        this.setState({ users: data.users })
         break
       default:
-        console.log(eventObj)
+        console.log(data)
         break
     }
   }
@@ -86,26 +84,18 @@ class App extends React.Component {
   render() {
     const { openConnection, inGame } = this.state
 
-    if (!openConnection){
+    if (!openConnection) {
       return <header>Connecting to server...</header>
     }
 
     if (inGame) {
       return (
         <AppContainer>
-          <Gameboard users={this.state.users} websocket={this.websocket}/>
-          {
-            this.state.storyteller ? <Storyteller/> : null
-          }
+          <Gameboard users={this.state.users} onDisconnect={this.onClose} />
+          {this.state.storyteller ? <Storyteller /> : null}
         </AppContainer>
       )
     }
-
-    // const lsGameSession = localStorage.getItem(BOTC_GAME_SESSION)
-    // if (lsGameSession && lsGameSession.uuid) {
-    //   this.doSend({ command: REJOIN_LOBBY, uuid: lsGameSession.toJSON().uuid })
-    //   return <div>OH! You're in a game. Please wait....</div>  
-    // }
 
     return (
       <AppContainer>

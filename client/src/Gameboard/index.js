@@ -1,26 +1,47 @@
 import React from 'react'
 
 import * as constants from '../constants'
-import websocket from '../Websocket'
+import wsClient from '../__lib__/wsClient'
 
-const DISCONNECT = 'disconnect'
+export class Gameboard extends React.Component {
+  componentDidMount() {
+    this.unsubscribe = wsClient.subscribe(this.onMessage)
+  }
 
-export const Gameboard = (props) => {
-    const onDisconnect = () => {
-        websocket.send(JSON.stringify({ command: DISCONNECT }))
-        localStorage.removeItem(constants.BOTC_GAME_SESSION)
-        websocket.close();
+  componentWillUnmount() {
+    this.unsubscribe()
+  }
+
+  onDisconnect = () => {
+    wsClient.sendMessage(constants.DISCONNECT, {})
+    localStorage.removeItem(constants.BOTC_GAME_SESSION)
+    wsClient.close()
+  }
+
+  onMessage = (data) => {
+    const { command } = data
+    switch (command) {
+      // case constants.USERS_UPDATE:
+      //   this.setState({ users: data.users })
+      //   break
+      default:
+        break
     }
+  }
+
+  render() {
+    const { users, onDisconnect } = this.props
 
     return (
-        <React.Fragment>
-            <header>IN BOTC GAME</header>
-            {props.users ? props.users.map (user=> {
-                return <li key={user.name}>{user.name}</li>
-            }): null}
-            <button onClick={() => onDisconnect()}>
-              Disconnect
-            </button>
-        </React.Fragment>
+      <React.Fragment>
+        <header>IN BOTC GAME</header>
+        {users
+          ? users.map((user) => {
+              return <li key={user.name}>{user.name}</li>
+            })
+          : null}
+        <button onClick={() => onDisconnect()}>Disconnect</button>
+      </React.Fragment>
     )
+  }
 }
